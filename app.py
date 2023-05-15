@@ -29,6 +29,19 @@ def get_characters():
     response = requests.get(f"{BASE_URL}characters", params=params)
     return jsonify(response.json())
 
+
+@app.route('/characters/<charid>')
+def get_character_uniq(charid):
+    ts = str(time.time())
+    hash = generate_hash(ts, PRIVATE_KEY, PUBLIC_KEY)
+    params = {
+        'apikey': PUBLIC_KEY,
+        'ts': ts,
+        'hash': hash
+    }
+    response = requests.get(f"{BASE_URL}characters/{charid}", params=params)
+    return jsonify(response.json())
+
 app.run(debug=True)
 
 
