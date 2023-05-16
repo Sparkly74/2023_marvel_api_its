@@ -1,10 +1,12 @@
 import hashlib # Importer la librairie pour générer un hash
 import time # Importer la librairie pour générer un timestamp
 import requests # importer al librairie requests pour faire des requêtes HTTP
-from flask import Flask, jsonify # Importer la librairie Flask pour créer une API et jsonify pour retourner du JSON
+from flask import Flask, jsonify, render_template # Importer la librairie Flask pour créer une API et jsonify pour retourner du JSON
+from flask_bootstrap import Bootstrap
 
 app = Flask(__name__) # Créer une instance de l'application Flask
 app.config.from_pyfile('config.py') # Chargez la configuration depuis le fichier config.py
+Bootstrap(app) # Initialiser Bootstrap
 
 PUBLIC_KEY = app.config['MARVEL_PUBLIC_KEY'] # Récupérer la clé publique depuis la configuration
 PRIVATE_KEY = app.config['MARVEL_PRIVATE_KEY'] # Récupérer la clé publique depuis la configuration
@@ -44,6 +46,17 @@ def generer_ts_hash():
     hash = generate_hash(ts, PRIVATE_KEY, PUBLIC_KEY) # Générer un hash avec le timestamp, la clé privée et la clé publique
     return {'ts': ts, 'hash': hash}
 
+@app.route('/boot_charac/<int:character_id>', methods=['GET'])
+def boot_charac(character_id): # Définir une fonction pour récupérer un personnage
+    ts_hash = generer_ts_hash() # Générer un timestamp et un hash
+    params = { # Définir les paramètres de la requête sur la base d'un dictionnaire
+        'apikey': PUBLIC_KEY,
+        'ts' : ts_hash['ts'],
+        'hash' : ts_hash['hash']
+    }
+    response = requests.get(f"{BASE_URL}characters/{character_id}", params=params) # Faire une requete HTTP GET sur l'URL de base + characters
+    boot_character = response.json()['data']['results'][0] # Récupération du personnage dans la réponse
+    return render_template('character.html', character=boot_character) # Retourner le template character.html avec le personnage boot_character
 
 app.run(debug=True) # Lancer l'application en mode debug
 
