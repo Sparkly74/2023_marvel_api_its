@@ -25,9 +25,25 @@ def get_characters(): # Définir une fonction pour récupérer les personnages
         'hash' : hash,
         'limit' : 100
     }
-
     response = requests.get(f"{BASE_URL}characters", params=params) # Faire une requete HTTP GET sur l'URL de base + characters
     return jsonify(response.json()) # Retourner le JSON de la réponse
+
+@app.route('/characters/<int:character_id>', methods=['GET']) # Créer une route pour récupérer un personnage
+def get_character(character_id): # Définir une fonction pour récupérer un personnage
+    ts_hash = generer_ts_hash() # Générer un timestamp et un hash
+    params = { # Définir les paramètres de la requête sur la base d'un dictionnaire
+        'apikey': PUBLIC_KEY,
+        'ts' : ts_hash['ts'],
+        'hash' : ts_hash['hash']
+    }
+    response = requests.get(f"{BASE_URL}characters/{character_id}", params=params) # Faire une requete HTTP GET sur l'URL de base + characters
+    return jsonify(response.json()) # Retourner le JSON de la réponse
+
+def generer_ts_hash():
+    ts = str(time.time()) # Générer un timestamp
+    hash = generate_hash(ts, PRIVATE_KEY, PUBLIC_KEY) # Générer un hash avec le timestamp, la clé privée et la clé publique
+    return {'ts': ts, 'hash': hash}
+
 
 app.run(debug=True) # Lancer l'application en mode debug
 
